@@ -1,18 +1,33 @@
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import { useEffect, useRef, useState } from 'react';
+import {
+  AmbientLight,
+  BoxGeometry,
+  Color,
+  DirectionalLight,
+  DoubleSide,
+  GridHelper,
+  Mesh,
+  MeshStandardMaterial,
+  PerspectiveCamera,
+  PlaneGeometry,
+  Scene,
+  WebGLRenderer,
+} from 'three';
+import createPlayerControls from './createPlayerControls';
 
-export default function GameScene() {
+const GameScene = function GameScene() {
   const containerRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
 
     // Create the scene
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb);
+    const scene = new Scene();
+    scene.background = new Color(0x87ceeb);
 
     // Create the perspective camera
-    const camera = new THREE.PerspectiveCamera(
+    const camera = new PerspectiveCamera(
       75,
       container.clientWidth / container.clientHeight,
       0.1,
@@ -23,7 +38,7 @@ export default function GameScene() {
     camera.lookAt(0, 1, -3);
 
     // Create the WebGL renderer
-    const renderer = new THREE.WebGLRenderer({
+    const renderer = new WebGLRenderer({
       antialias: true,
     });
 
@@ -38,18 +53,25 @@ export default function GameScene() {
 
     container.appendChild(renderer.domElement);
 
+    // Keep pointer lock and keyboard state separate from scene rendering.
+    const playerControls = createPlayerControls(
+      camera,
+      renderer.domElement,
+      setIsPlaying,
+    );
+
     // Create the ground
-    const groundGeometry = new THREE.PlaneGeometry(
+    const groundGeometry = new PlaneGeometry(
       30,
       30,
     );
 
-    const groundMaterial = new THREE.MeshStandardMaterial({
+    const groundMaterial = new MeshStandardMaterial({
       color: 0x78a86b,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     });
 
-    const ground = new THREE.Mesh(
+    const ground = new Mesh(
       groundGeometry,
       groundMaterial,
     );
@@ -60,7 +82,7 @@ export default function GameScene() {
     scene.add(ground);
 
     // Create the ground grid
-    const grid = new THREE.GridHelper(
+    const grid = new GridHelper(
       30,
       30,
       0x444444,
@@ -73,17 +95,17 @@ export default function GameScene() {
     scene.add(grid);
 
     // Create a test cube
-    const cubeGeometry = new THREE.BoxGeometry(
+    const cubeGeometry = new BoxGeometry(
       1,
       1,
       1,
     );
 
-    const cubeMaterial = new THREE.MeshStandardMaterial({
+    const cubeMaterial = new MeshStandardMaterial({
       color: 0xe67e22,
     });
 
-    const cube = new THREE.Mesh(
+    const cube = new Mesh(
       cubeGeometry,
       cubeMaterial,
     );
@@ -93,7 +115,7 @@ export default function GameScene() {
     scene.add(cube);
 
     // Add ambient lighting
-    const ambientLight = new THREE.AmbientLight(
+    const ambientLight = new AmbientLight(
       0xffffff,
       1.2,
     );
@@ -101,7 +123,7 @@ export default function GameScene() {
     scene.add(ambientLight);
 
     // Add directional lighting
-    const sunlight = new THREE.DirectionalLight(
+    const sunlight = new DirectionalLight(
       0xffffff,
       2,
     );
@@ -111,7 +133,7 @@ export default function GameScene() {
     scene.add(sunlight);
 
     // Handle container resizing
-    function handleResize() {
+    const handleResize = () => {
       const { clientWidth, clientHeight } = container;
 
       if (clientWidth === 0 || clientHeight === 0) {
@@ -122,24 +144,34 @@ export default function GameScene() {
       camera.updateProjectionMatrix();
 
       renderer.setSize(clientWidth, clientHeight);
-    }
+    };
 
     window.addEventListener('resize', handleResize);
 
     // Start the animation loop
     let animationId;
+    let previousTime = null;
 
-    function animate() {
-      animationId = requestAnimationFrame(animate);
+    const animate = (time) => {
+      // Cap large frame gaps to avoid sudden jumps after a paused tab.
+      const deltaTime = previousTime === null
+        ? 0
+        : Math.min((time - previousTime) / 1000, 0.05);
+      previousTime = time;
 
+      playerControls.update(deltaTime);
       renderer.render(scene, camera);
-    }
+      animationId = requestAnimationFrame(animate);
+    };
 
-    animate();
+    animationId = requestAnimationFrame(animate);
 
     // Clean up when the component unmounts
     return () => {
       cancelAnimationFrame(animationId);
+
+      // Remove pointer lock and keyboard listeners before releasing the renderer.
+      playerControls.dispose();
 
       window.removeEventListener(
         'resize',
@@ -164,7 +196,16 @@ export default function GameScene() {
   return (
     <div
       ref={containerRef}
-      className="game-scene"
-    />
+      className={`game-scene${isPlaying ? ' is-playing' : ''}`}
+    >
+      {!isPlaying && (
+        <div className="controls-hint">
+          <p>Click to play</p>
+          <p>WASD: Move | Mouse: Look around | Esc: Unlock</p>
+        </div>
+      )}
+    </div>
   );
-}
+};
+
+export default GameScene;
