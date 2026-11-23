@@ -1,7 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 
 const rooms = new Map();
-const maxPlayersPerRoom = 2;
+const maxPlayersPerRoom = 4;
 const maxNicknameLength = 20;
 const roomCodePattern = /^[0-9a-f]{6}$/i;
 
@@ -13,7 +13,7 @@ export class RoomError extends Error {
   }
 }
 
-function validateNickname(nickname) {
+const validateNickname = (nickname) => {
   if (typeof nickname !== 'string') {
     throw new RoomError('Nickname is required');
   }
@@ -28,9 +28,9 @@ function validateNickname(nickname) {
   }
 
   return trimmedNickname;
-}
+};
 
-function generateRoomCode() {
+const generateRoomCode = () => {
   let code;
 
   do {
@@ -38,19 +38,17 @@ function generateRoomCode() {
   } while (rooms.has(code));
 
   return code;
-}
+};
 
-function serializeRoom({ code, players }) {
-  return {
-    code,
-    players: players.map(({ id, nickname }) => ({
-      id,
-      nickname,
-    })),
-  };
-}
+const serializeRoom = ({ code, players }) => ({
+  code,
+  players: players.map(({ id, nickname }) => ({
+    id,
+    nickname,
+  })),
+});
 
-function findRoom(code) {
+const findRoom = (code) => {
   if (typeof code !== 'string' || !roomCodePattern.test(code)) {
     throw new RoomError('Invalid room code');
   }
@@ -62,9 +60,9 @@ function findRoom(code) {
   }
 
   return room;
-}
+};
 
-export function createRoom(nickname) {
+export const createRoom = (nickname) => {
   const name = validateNickname(nickname);
   const player = {
     id: randomUUID(),
@@ -82,13 +80,11 @@ export function createRoom(nickname) {
     playerId: player.id,
     room: serializeRoom(room),
   };
-}
+};
 
-export function getRoomInfo(code) {
-  return serializeRoom(findRoom(code));
-}
+export const getRoomInfo = (code) => serializeRoom(findRoom(code));
 
-export function joinRoom(code, nickname) {
+export const joinRoom = (code, nickname) => {
   const name = validateNickname(nickname);
   const room = findRoom(code);
 
@@ -107,4 +103,4 @@ export function joinRoom(code, nickname) {
     playerId: player.id,
     room: serializeRoom(room),
   };
-}
+};
