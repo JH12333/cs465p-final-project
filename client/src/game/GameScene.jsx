@@ -152,14 +152,19 @@ const GameScene = function GameScene() {
     let animationId;
     let previousTime = null;
 
+    const maxFrameGap = 0.25;
+
     const animate = (time) => {
-      // Cap large frame gaps to avoid sudden jumps after a paused tab.
       const deltaTime = previousTime === null
         ? 0
-        : Math.min((time - previousTime) / 1000, 0.05);
+        : (time - previousTime) / 1000;
       previousTime = time;
 
-      playerControls.update(deltaTime);
+      // Skip unusually large gaps to prevent sudden movement.
+      if (deltaTime <= maxFrameGap) {
+        playerControls.update(deltaTime);
+      }
+
       renderer.render(scene, camera);
       animationId = requestAnimationFrame(animate);
     };
