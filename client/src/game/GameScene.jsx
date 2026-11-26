@@ -1,19 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   AmbientLight,
-  BoxGeometry,
   Color,
   DirectionalLight,
-  DoubleSide,
-  GridHelper,
-  Mesh,
-  MeshStandardMaterial,
   PerspectiveCamera,
-  PlaneGeometry,
   Scene,
   WebGLRenderer,
 } from 'three';
+import createGameMap from './createGameMap';
 import createPlayerControls from './createPlayerControls';
+import { gridToWorld, spawnPoints } from './mapData';
 
 const GameScene = function GameScene() {
   const containerRef = useRef(null);
@@ -34,22 +30,21 @@ const GameScene = function GameScene() {
       1000,
     );
 
-    camera.position.set(0, 1.7, 8);
-    camera.lookAt(0, 1, -3);
+    // Position the player at the first spawn point.
+    const { row, column } = spawnPoints[0];
+    const { x, z } = gridToWorld(row, column);
+
+    camera.position.set(x, 1.7, z);
+    camera.lookAt(x + 1, 1.7, z);
 
     // Create the WebGL renderer
     const renderer = new WebGLRenderer({
       antialias: true,
     });
 
-    renderer.setSize(
-      container.clientWidth,
-      container.clientHeight,
-    );
+    renderer.setSize(container.clientWidth, container.clientHeight);
 
-    renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio, 2),
-    );
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     container.appendChild(renderer.domElement);
 
@@ -60,73 +55,16 @@ const GameScene = function GameScene() {
       setIsPlaying,
     );
 
-    // Create the ground
-    const groundGeometry = new PlaneGeometry(
-      30,
-      30,
-    );
-
-    const groundMaterial = new MeshStandardMaterial({
-      color: 0x78a86b,
-      side: DoubleSide,
-    });
-
-    const ground = new Mesh(
-      groundGeometry,
-      groundMaterial,
-    );
-
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 0;
-
-    scene.add(ground);
-
-    // Create the ground grid
-    const grid = new GridHelper(
-      30,
-      30,
-      0x444444,
-      0x888888,
-    );
-
-    // Prevent overlapping with the ground
-    grid.position.y = 0.01;
-
-    scene.add(grid);
-
-    // Create a test cube
-    const cubeGeometry = new BoxGeometry(
-      1,
-      1,
-      1,
-    );
-
-    const cubeMaterial = new MeshStandardMaterial({
-      color: 0xe67e22,
-    });
-
-    const cube = new Mesh(
-      cubeGeometry,
-      cubeMaterial,
-    );
-
-    cube.position.set(0, 0.5, 0);
-
-    scene.add(cube);
+    // Create the grid-based game map.
+    const gameMap = createGameMap(scene);
 
     // Add ambient lighting
-    const ambientLight = new AmbientLight(
-      0xffffff,
-      1.2,
-    );
+    const ambientLight = new AmbientLight(0xffffff, 1.2);
 
     scene.add(ambientLight);
 
     // Add directional lighting
-    const sunlight = new DirectionalLight(
-      0xffffff,
-      2,
-    );
+    const sunlight = new DirectionalLight(0xffffff, 2);
 
     sunlight.position.set(5, 10, 5);
 
@@ -178,19 +116,9 @@ const GameScene = function GameScene() {
       // Remove pointer lock and keyboard listeners before releasing the renderer.
       playerControls.dispose();
 
-      window.removeEventListener(
-        'resize',
-        handleResize,
-      );
+      window.removeEventListener('resize', handleResize);
 
-      groundGeometry.dispose();
-      groundMaterial.dispose();
-
-      grid.geometry.dispose();
-      grid.material.dispose();
-
-      cubeGeometry.dispose();
-      cubeMaterial.dispose();
+      gameMap.dispose();
 
       renderer.dispose();
 
