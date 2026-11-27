@@ -40,7 +40,7 @@ body {
 }
 
 .game-scene.is-playing::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -69,4 +69,287 @@ body {
 .game-title p {
   margin-top: 8px;
   font-size: 14px;
+}
+
+/* Multiplayer menu and lobby */
+
+.menu-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  height: 100dvh;
+  padding: 24px;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #111827, #263449);
+  color: #ffffff;
+}
+
+.menu-card {
+  width: 100%;
+  max-width: 440px;
+  margin: auto;
+  padding: 32px;
+  border: 1px solid #3d495b;
+  border-radius: 16px;
+  background: #1f2937;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.menu-header {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.menu-header h1 {
+  margin: 0 0 12px;
+  color: #f5bd58;
+  font-size: 32px;
+}
+
+.menu-header p {
+  margin: 0;
+  color: #aab5c5;
+  font-size: 14px;
+}
+
+.menu-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-form label {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.menu-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  background: #111827;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.menu-form input:focus {
+  outline: 2px solid #f5bd58;
+  outline-offset: 1px;
+}
+
+.menu-card button,
+.back-to-menu {
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.menu-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.menu-card button:focus-visible,
+.back-to-menu:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.primary-button {
+  background: #f5bd58;
+  color: #17202d;
+}
+
+.menu-card .secondary-button {
+  border-color: #f5bd58;
+  background: transparent;
+  color: #f5bd58;
+}
+
+.menu-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.menu-divider::before,
+.menu-divider::after {
+  flex: 1;
+  height: 1px;
+  background: #4b5563;
+  content: '';
+}
+
+.local-game-button {
+  width: 100%;
+  margin-top: 20px;
+  background: #374151;
+  color: #e5e7eb;
+}
+
+/* Room information */
+
+.lobby-card {
+  max-width: 500px;
+}
+
+.room-code-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #111827;
+}
+
+.room-code-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.room-code {
+  color: #f5bd58;
+  font-size: 28px;
+  letter-spacing: 3px;
+}
+
+.copy-button {
+  background: #374151;
+  color: #ffffff;
+}
+
+/* Player list */
+
+.player-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.player-list-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.player-list-header span {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.player-list ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #374151;
+}
+
+.player-avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: #596d8a;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.player-name {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.current-player {
+  color: #f5bd58;
+  font-size: 12px;
+}
+
+.player-status {
+  color: #d1d5db;
+  font-size: 12px;
+}
+
+.empty-player {
+  color: #9ca3af;
+  opacity: 0.65;
+}
+
+/* Lobby actions */
+
+.lobby-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-card .leave-button {
+  border-color: #b85c5c;
+  background: transparent;
+  color: #fca5a5;
+}
+
+.status-message {
+  margin: 12px 0;
+  color: #aab5c5;
+  font-size: 13px;
+  text-align: center;
+}
+
+.error-message {
+  padding: 12px;
+  border: 1px solid #b85c5c;
+  border-radius: 6px;
+  background: rgba(185, 28, 28, 0.15);
+  color: #fca5a5;
+  font-size: 14px;
+  text-align: center;
+}
+
+.back-to-menu {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2;
+  background: #1f2937;
+  color: #ffffff;
+}
+
+@media (max-width: 480px) {
+  .menu-page {
+    padding: 16px;
+  }
+
+  .menu-card {
+    padding: 20px;
+  }
+
+  .menu-header h1 {
+    font-size: 26px;
+  }
 }
