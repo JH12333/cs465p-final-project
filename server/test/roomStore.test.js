@@ -51,12 +51,16 @@ test('returns 404 when the room does not exist', () => {
   });
 });
 
-test('returns 409 when a third player tries to join', () => {
+test('returns 409 when a fifth player tries to join', () => {
   const { room } = createRoom('Alice');
 
   joinRoom(room.code, 'Bob');
+  joinRoom(room.code, 'Charlie');
+  const result = joinRoom(room.code, 'David');
 
-  assert.throws(() => joinRoom(room.code, 'Charlie'), {
+  assert.equal(result.room.players.length, 4);
+
+  assert.throws(() => joinRoom(room.code, 'Eve'), {
     name: 'RoomError',
     status: 409,
   });
