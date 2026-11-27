@@ -64,6 +64,11 @@ const createGameServer = ({
       req.body?.nickname,
     );
 
+    io.to(`room:${result.room.code}`).emit(
+      'room:update',
+      result.room,
+    );
+
     res.json(result);
   });
 
