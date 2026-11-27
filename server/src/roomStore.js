@@ -40,8 +40,9 @@ const generateRoomCode = () => {
   return code;
 };
 
-const serializeRoom = ({ code, players }) => ({
+const serializeRoom = ({ code, status, players }) => ({
   code,
+  status,
   players: players.map(({ id, nickname }) => ({
     id,
     nickname,
@@ -74,6 +75,7 @@ export const createRoom = (nickname) => {
 
   const room = {
     code: generateRoomCode(),
+    status: 'waiting',
     players: [player],
   };
 
@@ -92,6 +94,10 @@ export const joinRoom = (code, nickname) => {
   const name = validateNickname(nickname);
   const room = findRoom(code);
 
+  if (room.status !== 'waiting') {
+    throw new RoomError('Room is not accepting new players', 409);
+  }
+
   if (room.players.length >= maxPlayersPerRoom) {
     throw new RoomError('Room is full', 409);
   }
@@ -105,6 +111,40 @@ export const joinRoom = (code, nickname) => {
     sessionToken: player.sessionToken,
     room: serializeRoom(room),
   };
+};
+
+export const leaveRoom = (code, playerId) => {
+  const room = findRoom(code);
+
+  const playerIndex = room.players.findIndex(
+    ({ id }) => id === playerId,
+  );
+
+  if (playerIndex === -1) {
+    throw new RoomError('Player not found', 404);
+  }
+
+  room.players.splice(playerIndex, 1);
+
+  if (room.players.length === 0) {
+    rooms.delete(room.code);
+
+    return null;
+  }
+
+  return serializeRoom(room);
+};
+
+export const setRoomStatus = (code, status) => {
+  const room = findRoom(code);
+
+  if (!['waiting', 'playing'].includes(status)) {
+    throw new RoomError('Invalid room status');
+  }
+
+  room.status = status;
+
+  return serializeRoom(room);
 };
 
 export const authenticatePlayer = (
