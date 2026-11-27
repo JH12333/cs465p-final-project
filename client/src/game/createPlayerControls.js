@@ -9,6 +9,7 @@ const createPlayerControls = (
   domElement,
   onLockChange,
   playerCollision,
+  onPlaceBomb,
 ) => {
   const controls = new PointerLockControls(camera, domElement);
   const pressedKeys = new Set();
@@ -18,7 +19,21 @@ const createPlayerControls = (
   const displacement = new Vector3();
 
   const handleKeyDown = (event) => {
-    if (!controls.isLocked || !movementKeys.has(event.code)) {
+    if (!controls.isLocked) {
+      return;
+    }
+
+    if (event.code === 'Space') {
+      event.preventDefault();
+
+      if (!event.repeat) {
+        onPlaceBomb();
+      }
+
+      return;
+    }
+
+    if (!movementKeys.has(event.code)) {
       return;
     }
 

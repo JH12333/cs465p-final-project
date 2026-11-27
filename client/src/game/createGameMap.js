@@ -9,6 +9,7 @@ import {
 import {
   cellSize,
   createMapData,
+  getTile,
   gridSize,
   gridToWorld,
   mapSize,
@@ -85,6 +86,22 @@ const createGameMap = (scene) => {
   return {
     tiles,
     obstacles,
+
+    destroyCrate(row, column) {
+      const key = `${row},${column}`;
+      const obstacle = obstacles.get(key);
+
+      if (!obstacle || getTile(tiles, row, column) !== tileTypes.CRATE) {
+        return false;
+      }
+
+      mapGroup.remove(obstacle);
+      obstacles.delete(key);
+      tiles[row][column] = tileTypes.EMPTY;
+
+      return true;
+    },
+
     dispose() {
       scene.remove(mapGroup);
 
