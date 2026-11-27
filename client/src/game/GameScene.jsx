@@ -7,6 +7,7 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
+import createBombManager from './createBombManager';
 import createGameMap from './createGameMap';
 import createPlayerCollision from './createPlayerCollision';
 import createPlayerControls from './createPlayerControls';
@@ -55,12 +56,16 @@ const GameScene = function GameScene() {
     // Create collision detection using the current map data.
     const playerCollision = createPlayerCollision(gameMap.tiles);
 
+    // Create the bomb management system.
+    const bombManager = createBombManager(scene, gameMap);
+
     // Keep pointer lock and keyboard state separate from scene rendering.
     const playerControls = createPlayerControls(
       camera,
       renderer.domElement,
       setIsPlaying,
       playerCollision,
+      () => bombManager.placeBomb(camera.position),
     );
 
     // Add ambient lighting
@@ -108,6 +113,8 @@ const GameScene = function GameScene() {
         playerControls.update(deltaTime);
       }
 
+      bombManager.update(time);
+
       renderer.render(scene, camera);
       animationId = requestAnimationFrame(animate);
     };
@@ -123,6 +130,7 @@ const GameScene = function GameScene() {
 
       window.removeEventListener('resize', handleResize);
 
+      bombManager.dispose();
       gameMap.dispose();
 
       renderer.dispose();
@@ -140,6 +148,7 @@ const GameScene = function GameScene() {
         <div className="controls-hint">
           <p>Click to play</p>
           <p>WASD: Move | Mouse: Look around | Esc: Unlock</p>
+          <p>Space: Place bomb</p>
         </div>
       )}
     </div>
