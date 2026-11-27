@@ -8,6 +8,7 @@ import {
   WebGLRenderer,
 } from 'three';
 import createGameMap from './createGameMap';
+import createPlayerCollision from './createPlayerCollision';
 import createPlayerControls from './createPlayerControls';
 import { gridToWorld, spawnPoints } from './mapData';
 
@@ -48,15 +49,19 @@ const GameScene = function GameScene() {
 
     container.appendChild(renderer.domElement);
 
+    // Create the grid-based game map.
+    const gameMap = createGameMap(scene);
+
+    // Create collision detection using the current map data.
+    const playerCollision = createPlayerCollision(gameMap.tiles);
+
     // Keep pointer lock and keyboard state separate from scene rendering.
     const playerControls = createPlayerControls(
       camera,
       renderer.domElement,
       setIsPlaying,
+      playerCollision,
     );
-
-    // Create the grid-based game map.
-    const gameMap = createGameMap(scene);
 
     // Add ambient lighting
     const ambientLight = new AmbientLight(0xffffff, 1.2);
