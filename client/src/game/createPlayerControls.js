@@ -1,13 +1,21 @@
-import { Vector2 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 const moveSpeed = 5;
 const movementKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
 
-const createPlayerControls = (camera, domElement, onLockChange) => {
+const createPlayerControls = (
+  camera,
+  domElement,
+  onLockChange,
+  playerCollision,
+) => {
   const controls = new PointerLockControls(camera, domElement);
   const pressedKeys = new Set();
   const movement = new Vector2();
+  const rightDirection = new Vector3();
+  const forwardDirection = new Vector3();
+  const displacement = new Vector3();
 
   const handleKeyDown = (event) => {
     if (!controls.isLocked || !movementKeys.has(event.code)) {
@@ -78,10 +86,26 @@ const createPlayerControls = (camera, domElement, onLockChange) => {
       // Normalize diagonal input to keep movement speed consistent.
       movement.normalize().multiplyScalar(moveSpeed * deltaTime);
 
-      // PointerLockControls uses the camera matrix to determine movement direction.
+      // Calculate movement directions on the XZ plane.
       camera.updateMatrix();
-      controls.moveRight(movement.x);
-      controls.moveForward(movement.y);
+
+      rightDirection.setFromMatrixColumn(camera.matrix, 0);
+      forwardDirection.crossVectors(camera.up, rightDirection);
+
+      // Convert local movement into world-space displacement.
+      displacement
+        .copy(rightDirection)
+        .multiplyScalar(movement.x)
+        .addScaledVector(forwardDirection, movement.y);
+
+      // Resolve movement against map obstacles.
+      const nextPosition = playerCollision.move(
+        camera.position,
+        displacement.x,
+        displacement.z,
+      );
+
+      camera.position.set(nextPosition.x, camera.position.y, nextPosition.z);
     },
 
     dispose() {
