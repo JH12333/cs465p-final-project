@@ -62,12 +62,15 @@ const findRoom = (code) => {
   return room;
 };
 
+const createPlayer = (nickname) => ({
+  id: randomUUID(),
+  nickname,
+  sessionToken: randomBytes(32).toString('hex'),
+});
+
 export const createRoom = (nickname) => {
   const name = validateNickname(nickname);
-  const player = {
-    id: randomUUID(),
-    nickname: name,
-  };
+  const player = createPlayer(name);
 
   const room = {
     code: generateRoomCode(),
@@ -78,6 +81,7 @@ export const createRoom = (nickname) => {
 
   return {
     playerId: player.id,
+    sessionToken: player.sessionToken,
     room: serializeRoom(room),
   };
 };
@@ -92,15 +96,38 @@ export const joinRoom = (code, nickname) => {
     throw new RoomError('Room is full', 409);
   }
 
-  const player = {
-    id: randomUUID(),
-    nickname: name,
-  };
+  const player = createPlayer(name);
 
   room.players.push(player);
 
   return {
     playerId: player.id,
+    sessionToken: player.sessionToken,
     room: serializeRoom(room),
+  };
+};
+
+export const authenticatePlayer = (
+  code,
+  playerId,
+  sessionToken,
+) => {
+  const room = findRoom(code);
+
+  const player = room.players.find(
+    ({ id }) => id === playerId,
+  );
+
+  if (
+    !player
+    || typeof sessionToken !== 'string'
+    || player.sessionToken !== sessionToken
+  ) {
+    throw new RoomError('Invalid room credentials', 401);
+  }
+
+  return {
+    roomCode: room.code,
+    playerId: player.id,
   };
 };
